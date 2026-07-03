@@ -4,6 +4,12 @@
   font-family: Arial, sans-serif;
 }
 
+.sidebar{
+  width: 280px;
+  overflow-y: auto;
+  height: 100vh;
+}
+
 .chat-window {
   flex: 1;
   display: flex;

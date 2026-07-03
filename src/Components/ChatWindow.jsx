@@ -1,59 +1,89 @@
 import Message from "./Message";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-function ChatWindow() {
-  const [messages, setMessages] = useState([
-    { text: "Hello! How can I help you today?", sender: "bot" }
-  ]);
-
+function ChatWindow({currentSessionId}) {
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const sendMessage = () => {
-    if (input.trim() === "") return;
+  // Fetch previous chats
+  const getChats = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/chats/${currentSessionId}`);
+      const data = await response.json();
 
-    setMessages(prev => [...prev, { text: input, sender: "user" }]);
-    setInput("");
-    setLoading(true);
-    try{
-      const Response = await fetch("  http://localhost:5000/api",{
-      method : "POST",
-      headers : {
-        "Content-Type": "application/json",
-      },
-      body:JSON.stringify({
-        Message:input
-      }),
-
-    }),
-    const data = await Response.json();
-    const aiMessage = {text:data,reply,sender:"AI"};
-    setMessages((previousMessages)=> [...previousMessages,
-      aiMessage]);
-    } catch(error){
-      setMessages((previousMessages)=> [
-        ...previousMessages,
-        {text:"Something  went wrong",
-          sender:"AI"}
-      ]);
+      if (data.success) {
+        setMessages(data.chats);
+      }
+    } catch (error) {
+      console.error("Error fetching chats:", error);
     }
-    setLoading(false);
   };
 
+  useEffect(() => {
+    if (currentSessionId) {
+    getChats();
+    } else {
+      setMessages([]); // Clear messages if no session is selected
+    }
+  }, [currentSessionId]);
+
+  // Send a new message
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    const userMessage = input;
+
+    // Display user's message immediately
+    setMessages((prev) => [
+      ...prev,
+      { text: userMessage, sender: "user" },
+    ]);
+
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          sessionId: currentSessionId, // Include the session ID
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+
+      // Adjust this according to your backend response
+      const aiMessage = {
+        text: data.reply || data.message || "No response from AI",
+        sender: "AI",
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error(error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: "Something went wrong.",
+          sender: "AI",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div> 
-      <div>
-        {messages.map((msg, index) => (
-          <Message
-            key={index}
-            text={msg.text}
-            sender={msg.sender}
-          />
-        ))}
-        {loading && <div>Loading...</div>}
-        </div>
-        
-    
     <div className="chat-window">
       <div className="chat-header">
         <h2>CHAT KHUL JA SIM SIM</h2>
@@ -61,12 +91,14 @@ function ChatWindow() {
 
       <div className="messages-container">
         {messages.map((msg, index) => (
-          <Message 
-            key={index} 
-            text={msg.text} 
-            sender={msg.sender} 
+          <Message
+            key={index}
+            text={msg.text}
+            sender={msg.sender}
           />
         ))}
+
+        {loading && <div>Loading...</div>}
       </div>
 
       <div className="input-area">
@@ -75,13 +107,17 @@ function ChatWindow() {
           placeholder="Type a message..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              sendMessage();
+            }
+          }}
         />
+
         <button onClick={sendMessage}>Send</button>
       </div>
     </div>
-  </div>
-  )
-};
+  );
+}
 
 export default ChatWindow;
