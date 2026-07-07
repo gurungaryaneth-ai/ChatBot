@@ -1,9 +1,10 @@
-import React from 'react'
+import { useState, useEffect } from "react";
 import Sidebar from './Components/Sidebar'
 import ChatWindow from './Components/ChatWindow'
 import './App.css'
 function App() {
-  const [currentSessionId, setCurrentSessionId] = React.useState(null);
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [refreshChats, setRefreshChats] = useState(false);
 
   useEffect(() => {
     createFirstSession();
@@ -28,10 +29,12 @@ function App() {
   return (
     <div className="app">
     <Sidebar
-      currentSessionId={currentSessionId}
       setCurrentSessionId={setCurrentSessionId}
+      refreshChats={refreshChats}
     />
-    <ChatWindow currentSessionId={currentSessionId} />
+    <ChatWindow currentSessionId={currentSessionId} 
+    setRefreshChats={setRefreshChats}
+    />
     </div>
    
      

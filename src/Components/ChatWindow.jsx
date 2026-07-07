@@ -1,7 +1,7 @@
 import Message from "./Message";
 import { useState, useEffect } from "react";
 
-function ChatWindow({currentSessionId}) {
+function ChatWindow({currentSessionId, setRefreshChats}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,6 +68,7 @@ function ChatWindow({currentSessionId}) {
       };
 
       setMessages((prev) => [...prev, aiMessage]);
+      setRefreshChats((prev) => !prev); // Trigger refresh in Sidebar
     } catch (error) {
       console.error(error);
 
@@ -84,7 +85,7 @@ function ChatWindow({currentSessionId}) {
   };
 
   return (
-    <div className="chat-window">
+    <div className="chat-window" >
       <div className="chat-header">
         <h2>CHAT KHUL JA SIM SIM</h2>
       </div>

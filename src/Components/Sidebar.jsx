@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-function Sidebar({ setCurrentSessionId }) {
+function Sidebar({ setCurrentSessionId, refreshChats }) {
   const [chats, setChats] = useState([]);
-i
+
   useEffect(() => {
     fetchChats();
-  }, []);
+  }, [ refreshChats]);
 
   const fetchChats = async () => {
     try {
